@@ -1,0 +1,500 @@
+import kaboom from "kaboom";
+import patrol from "./patrol";
+// initialize context
+kaboom();
+
+// load assets
+loadSprite("Theif", "sprites/Theif.png");
+loadSprite("Coin", "sprites/Coin.png");
+loadSprite("Moneybag", "sprites/Moneybag.png");
+loadSprite("Policecar", "sprites/Policecar.png");
+loadSprite("Evil", "sprites/Evil.png");
+loadPedit("Background", "sprites/Background.pedit");
+loadSprite("Door", "sprites/Door.png");
+loadSprite("Light", "sprites/Light.png");
+loadSprite("Bank", "sprites/Bank.png");
+loadSprite("Rock", "sprites/Rock.png");
+loadSprite("Gemstone", "sprites/Gemstone.png");
+loadPedit("ground", "sprites/ground.pedit");
+
+// load sounds
+loadSound("Backgroundchase", "sounds/Backgroundchase.mp3");
+loadSound("Coinbag", "sounds/Coinbag.mp3");
+loadSound("Coin", "sounds/Coin.mp3");
+loadSound("Policesiren", "sounds/Policesiren.mp3");
+loadSound("Gemstone", "sounds/Gemstone.mp3");
+loadSound("cheering", "sounds/cheering.mp3");
+
+
+// define some constants
+const JUMP_FORCE = 1320;
+const MOVE_SPEED = 480;
+const FALL_DEATH = 2400;
+
+
+//keyboard controls
+keyDown("left", () => {
+  player.move(-MOVE_SPEED, 0);
+});
+
+keyDown("right", () => {
+  player.move(MOVE_SPEED, 0);
+});
+
+keyDown("up", () => {
+  player.move(0, -MOVE_SPEED);
+});
+
+keyDown("down", () => {
+  player.move(0, MOVE_SPEED);
+});
+
+
+
+
+
+action(() => {
+
+
+
+
+
+
+});
+
+
+
+const LEVELS = [
+  [
+    "                                     t     ",
+    "                            $              ",
+    "                            $              ",
+    "                                           ",
+    "                          ===    =         ",
+    "                                   =       ",
+    "                   $$$               =     ",
+    "          $$    =p      =                  ",
+    "                =========                  ",
+    "         ====                             $",
+    "                                          $",
+    "                                          $",
+    "                                          $",
+    "          e         p        =            d",
+    "==============================",
+  ],
+  [
+    "     $    $    $    $               ",
+    "     $    $    $    $               ",
+    "                                $   ",
+    "                                $   ",
+    "                    =         ===   ",
+    "              =     =               ",
+    "      =       =     =               ",
+    "      =    p  =   o = o            d",
+    "==============================",
+  ],
+];
+
+// define what each symbol means in the level graph
+const levelConf = {
+  // grid size
+  width: 60,
+  height: 40,
+
+
+
+  // define each object as a list of components
+  "=": () => [
+    sprite("ground"),
+    area(),
+    solid(),
+    scale(1),
+    origin("bot"),
+    'ground',
+  ],
+  "$": () => [
+    sprite("Coin"),
+    area(),
+    scale(0.1),
+    pos(0, -9),
+    origin("bot"),
+    "Coin",
+  ],
+
+  "p": () => [
+    sprite("Policecar"),
+    area(),
+    scale(0.2),
+    pos(0, 0),
+    patrol(),
+    body(),
+    origin("bot"),
+    "enemy",
+  ],
+
+
+  "o": () => [
+    sprite("Rock"),
+    area(),
+    scale(0.095),
+    pos(0, 0),
+    body(),
+    origin("bot"),
+    "",
+  ],
+
+
+
+  "d": () => [
+    sprite("Door"),
+    area(),
+    scale(0.2),
+    pos(0, 0),
+    origin("bot"),
+    "door",
+  ],
+
+  "t": () => [
+    sprite("Moneybag"),
+    area(),
+    scale(0.2),
+    pos(0, 0),
+    solid(),
+    origin("bot"),
+    "prize",
+  ],
+
+"G": () => [
+    sprite("Gemstone"),
+    area(),
+    scale(0.5),
+    origin("bot"),
+    body(),
+    "prize",
+  ],
+
+  "#": () => [
+    sprite("Coin"),
+    area(),
+    scale(0.5),
+    origin("bot"),
+    body(),
+    "Coin",
+  ],
+
+};
+
+
+
+
+//starts the game scene at level 0 initially, then level 1
+scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
+
+  gravity(3200);
+
+  //add a white background
+  add([
+    rect(width() * 5, height() * 5),
+    color(255, 255, 255),
+    origin("center"),
+  ]);
+
+  //add a picture over the white background
+  add([
+    sprite("Background"),
+    scale(100),
+    origin("center"),
+  ]);
+
+scene("Start" , () => {
+  
+
+  //add a picture over the white background
+  add([
+    sprite("Background"),
+    scale(100),
+    origin("center"),
+  ]);
+  
+});
+
+
+  //Add timer to the game
+  let time = 0
+  let score = 0
+
+
+// Create timer and set text to 0.
+const timer = add([
+		text(0),
+		pos(1300, 20),
+    fixed(),
+    {
+			time: 30,
+		},
+	]);
+
+
+
+// Draw the timer to the screen
+timer.action(() => {
+		timer.time -= dt();
+		timer.text = timer.time.toFixed(2);
+});
+  
+
+
+  //adds the coin text in the top right corner
+  const scorer = add([
+    text(coins),
+    pos(24, 24),
+    fixed(),
+  ]);
+  
+  
+
+  
+
+
+  // add level to scene
+  const level = addLevel(LEVELS[levelId ?? 0], levelConf);
+
+  // play a looping soundtrack 
+  const sound = play("Backgroundchase", {
+    loop: true
+  })
+// using the handle to control 
+
+sound.play()
+
+
+  // define player object
+  const player = add([
+    sprite("Theif"),
+    pos(0, 0),
+    area(),
+    scale(0.1),
+    // makes it fall to gravity and jumpable
+    body(),
+    origin("center"),
+  ]);
+
+//if the time is negative
+      if (time = 0){
+        go("lose");
+      }
+
+
+
+  // action() runs every frame
+  player.action(() => {
+    // center camera to player
+    camPos(player.pos);
+    // check fall death
+    if (player.pos.y >= FALL_DEATH) {
+      sound.stop();
+      go("lose");
+    }
+  });
+
+
+  // if player collides with any obj with "danger" tag, lose
+  player.collides("danger", () => {
+    sound.stop()
+    go("lose");
+    play("Policesiren");
+  });
+
+  // if player touches the door
+	player.collides("door", () => {
+		if (levelId + 1 < LEVELS.length) { //goes to next level, if there is one
+      sound.stop()
+			go("game", {
+				levelId: levelId + 1,
+				coins: coins,
+			});
+		} else {
+      sound.stop()
+			go("win");
+		}
+	});  
+
+  //code to jump on enemies heads
+	player.onGround((l) => {
+		if (l.is("enemy")) {
+			player.jump(JUMP_FORCE * 1.5);
+			destroy(l);
+			addKaboom(player.pos);
+			play("Policesiren");
+		}
+	});
+
+
+
+
+  //if player touches an enemy on any side other than its bottom edge then player dies
+  player.onCollide("enemy" , (e, col) => {
+    if (!col.isBottom()) {
+      sound.pause("Backgroundchase")
+      play("Policesiren");
+      sound.stop();
+      go("lose");
+    }
+  });
+
+
+
+
+  let hasGemstone = false;
+
+  // grow an coin if player's head bumps into an obj with "prize" tag
+  player.on("headbutt", (obj) => {
+    if (obj.is("prize") && !hasGemstone) {
+      const Gemstone = level.spawn("G", obj.gridPos.sub(0, 1));
+      Gemstone.jump();
+      hasGemstone = true;
+      play("Gemstone");
+    }
+  });
+
+  // If player collides with item with coin tag
+  player.collides("Coin", (a) => {
+    destroy(a);
+    hasCoin = false;
+    play("Coin");
+    coins += 1;
+    scorer.text = coins;
+  });
+
+
+  // If player collides with item with Gemstone tag
+  player.collides("Gemstone", (a) => {
+    destroy(a);
+    hasGemstone = false;
+    play("Gemstone");
+    Gemstone += 2;
+    scorer.text = Gemstone;
+  });
+
+function spawnEvil(){
+
+      const Evil = add([
+          sprite("Evil"),
+          area(),
+          pos(Math.floor(Math.random() * width()), -100),  //Enemy appears at random X coordinate
+          origin("center"),
+          move(DOWN, 240),
+          scale(0.2),
+          "Evil", // add a tag here
+        ]);
+
+    
+      wait(rand(3, 3.5), spawnEvil);
+
+    } //end of the spawnEvil function
+  spawnEvil();
+
+  // code that handles what to do if you collide with a Evil
+    player.collides("Evil", (s) => {
+      addKaboom(player.pos); // add a kaboom! at the player position
+      
+      destroy(s);
+      score -= 1; //minus 1 to the score variable
+      scorer.text = score
+     });
+
+    
+
+
+
+  // jump with up
+  keyPress("up", () => {
+    // these 2 functions are provided by body() component
+    if (player.grounded()) {
+      player.jump(JUMP_FORCE);
+    }
+  });
+
+  //go left
+  keyDown("left", () => {
+    player.move(-MOVE_SPEED, 0);
+  });
+
+  //go right
+  keyDown("right", () => {
+    player.move(MOVE_SPEED, 0);
+  });
+
+
+
+}); // END OF MAIN SCENE
+
+scene("lose", () => {
+	//add a white background
+   add([
+		rect(width()*5, height()*5),
+		color(0,206,209),
+    origin("center"),
+	]);
+  
+  add([
+    sprite("Light"),
+    pos(width()/2,height()/2- 40 ),
+    origin("center"),
+  ]);
+
+  add([
+		text("You Lose"),
+    pos(width()/2,height()/2),
+    origin("center"),
+
+//adds score to lose scene
+ 
+
+	]);
+
+  keyPress(() => go("game"));
+}); //END OF LOSE SCENE
+
+
+
+scene("win", () => {
+
+
+  const cheer = play("cheering" , {
+    volume: 1.0,
+    loop: true
+
+  })
+
+ cheer.play()
+
+  //add a white background
+   add([
+		rect(width()*5, height()*5),
+		color(0,206,209),
+    origin("center"),
+	]);
+  
+
+  add([
+    sprite("Bank"),
+    pos(width()/2,height()/2- 40 ),
+    origin("center"),
+  ]);
+
+  
+  add([
+		text("You Win"),
+    pos(width()/2,height()/2),
+    origin("center"),
+	]);
+  
+  onKeyPress(() => {
+    cheer.stop()
+    go("game")
+  })
+  
+});
+
+go("game");
